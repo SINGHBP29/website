@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <title>Online Voting System</title>
+    <style>
+      /* Styles remain unchanged */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: Arial, sans-serif;
+      }
+      .section {
+        margin-bottom: 30px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      .section h2 {
+        margin-top: 0;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+      }
+      input,
+      select,
+      button {
+        margin-bottom: 10px;
+        padding: 8px;
+        width: 100%;
+      }
+      button {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 20px;
+        border-radius: 3px;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+
+      input {
+        border: 2px solid rgb(111, 134, 228);
+        border-radius: 9px;
+        transition: all 300ms;
+      }
+      input:focus {
+        outline: none;
+        border: 3px solid rgba(0, 0, 255, 0.47);
+      }
+
+      .sec-ma {
+        margin: 50px 20px 0px 20px;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 5px 10px;
+        position: sticky;
+        left: 0;
+        top: 0;
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      .logo-img {
+        width: 10%;
+      }
+
+      .logout {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        padding: 5px 16px;
+        background-color: #ff0d0d;
+        text-decoration: none;
+        color: white;
+        border-radius: 9px;
+        font-size: 24px;
+        font-weight: 500;
+        transition: all 200ms;
+      }
+      .logout:hover {
+        border: 5px solid #fd9c9c;
+      }
+
+      .greet {
+        margin-top: 50px;
+        padding-left: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .phone-input {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .phone-input span {
+        width: 100px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .get-otp {
+        margin: 50px 20px 0px 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="logo">
+        <img
+          src="https://i.ibb.co/Bz0VryQ/logo.jpg"
+          alt="india voting"
+          class="logo-img"
+        />
+        <h1>Online Voting System</h1>
+      </div>
+      <a href="{% url 'logout' %}" class="logout"
+        ><span>Logout</span> <i class="fa fa-sign-out"></i
+      ></a>
+    </div>
+
+    <div class="greet">
+      <h1>Welcome 👋, {{ user.username }}!</h1>
+      <p>You are successfully logged in.</p>
+    </div>
+
+    <!-- OTP Generation Section -->
+    <form id="otpForm" class="get-otp">
+      <div class="phone-input">
+        <span>
+          <img
+            src="https://upload.wikimedia.org/wikipedia/en/4/41/Flag_of_India.svg"
+            alt="india flag"
+            width="40%"
+          />
+          +91
+        </span>
+        <input type="text" id="phone" placeholder="Enter your phone number" />
+      </div>
+      <button type="submit">Send OTP</button>
+    </form>
+
+    <!-- OTP Verification Section -->
+    <div class="section sec-ma" id="otp">
+      <h2>Step 2: Verify OTP</h2>
+      <form id="verify-otp-form">
+        <label for="otp">OTP:</label>
+        <input
+          type="text"
+          id="otp"
+          name="otp"
+          placeholder="Enter the OTP"
+          required
+        />
+        <button type="submit">Verify OTP</button>
+      </form>
+    </div>
+
+    <!-- Fetch Candidates Section -->
+    <div class="section sec-ma" id="candidates">
+      <h2>Step 3: View Candidates</h2>
+      <form id="candidates-form">
+        <label for="constituency">Select Constituency:</label>
+        <select id="constituency" name="constituency" required>
+          <option value="">--Select--</option>
+          <option value="Delhi-01">Delhi-01</option>
+        </select>
+        <button type="submit">Get Candidates</button>
+      </form>
+      <div id="candidates-list"></div>
+    </div>
+
+    <!-- Submit Vote Section -->
+    <div class="section sec-ma" id="vote-section">
+      <h2>Step 4: Submit Your Vote</h2>
+      <form id="vote-form">
+        <label for="voter_id">Voter ID:</label>
+        <input
+          type="text"
+          id="voter_id"
+          name="voter_id"
+          placeholder="Enter your Voter ID"
+          required
+        />
+        <label for="candidate_id">Select Candidate:</label>
+        <select id="candidate_id" name="candidate_id" required>
+          <option value="">--Select--</option>
+          <option value="C001">Meera Sharma (People's Party)</option>
+          <option value="C002">Amit Verma (Freedom Party)</option>
+        </select>
+        <button type="submit">Submit Vote</button>
+      </form>
+      <div id="vote-result"></div>
+    </div>
+
+    <!-- Admin Stats Section -->
+    <div class="section sec-ma">
+      <h2>Admin Stats</h2>
+      <form id="stats-form">
+        <label for="constituency">Select Constituency:</label>
+        <select id="constituency" name="constituency">
+          <option value="Delhi-01">Delhi-01</option>
+        </select>
+        <button type="submit">Get Stats</button>
+      </form>
+      <div id="stats-result"></div>
+    </div>
+
+    <script>
+      // Consolidate and simplify event handlers
+      document.getElementById("otpForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        const phone = document.getElementById("phone").value;
+        try {
+          const response = await fetch("/generate_otp/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+            body: JSON.stringify({ phone }),
+          });
+          const data = await response.json();
+          alert(data.message);
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      });
+
+      document.getElementById("verify-otp-form").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        const otp = document.getElementById("otp").value;
+        try {
+          const response = await fetch("/verify_otp/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+            body: JSON.stringify({ otp }),
+          });
+          const data = await response.json();
+          alert(data.message);
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      });
+
+      document.getElementById("candidates-form").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        const constituency = document.getElementById("constituency").value;
+        try {
+          const response = await fetch(`/get_candidates/?constituency=${constituency}`);
+          const candidates = await response.json();
+          const list = candidates.map((c) => `<p>${c.name} (${c.party})</p>`).join("");
+          document.getElementById("candidates-list").innerHTML = list || "<p>No candidates found.</p>";
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      });
+
+      document.getElementById("vote-form").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        const voter_id = document.getElementById("voter_id").value;
+        const candidate_id = document.getElementById("candidate_id").value;
+        try {
+          const response = await fetch("/submit_vote/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+            body: JSON.stringify({ voter_id, candidate_id }),
+          });
+          const data = await response.json();
+          document.getElementById("vote-result").innerText = data.message;
+          if (data.message === "Vote recorded successfully") {
+            document.getElementById("vote-form").reset();
+          }
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      });
+
+      document.getElementById("stats-form").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        const constituency = document.getElementById("constituency").value;
+        try {
+          const response = await fetch(`/admin_stats/?constituency=${constituency}`);
+          const data = await response.json();
+          let htmlContent = `
+            <p>Total Voters: ${data.total_voters}</p>
+            <p>Voted: ${data.voted}</p>
+            <p>Pending: ${data.pending}</p>
+            <h3>Candidate Votes:</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Candidate Name</th>
+                  <th>Vote Count</th>
+                </tr>
+              </thead>
+              <tbody>
+          `;
+          for (const candidateId in data.candidate_votes) {
+            const candidate = data.candidate_votes[candidateId];
+            htmlContent += `<tr><td>${candidate.name}</td><td>${candidate.vote_count}</td></tr>`;
+          }
+          htmlContent += `</tbody></table>`;
+          document.getElementById("stats-result").innerHTML = htmlContent;
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      });
+    </script>
+  </body>
+</html>
